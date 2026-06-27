@@ -171,5 +171,5 @@ def render():
         colors = {"Critical": "#EF4444", "High": "#F97316", "Medium": "#EAB308", "Low": "#22C55E"}
         return f"color: {colors.get(val, '#E0E0E0')}; font-weight: 600"
 
-    styled = display_df.style.applymap(color_severity, subset=["Severity"])
+    styled = display_df.style.map(color_severity, subset=["Severity"])
     st.dataframe(styled, use_container_width=True, height=400)

@@ -25,10 +25,10 @@ def run():
     
     # 2. Randomly execute 3 attacks
     attacks = [
-        ("Stealth Port Scan", lambda: sim_scan.run(end_port=200)),
+        ("Stealth Port Scan", lambda: sim_scan.run(end_port=50)),
         ("HTTP DDoS", lambda: sim_dos.run(requests=200)),
-        ("FTP Brute Force", lambda: sim_brute.run(attempts=50)),
-        ("Web Crawling", lambda: sim_crawl.run(pages=20))
+        ("FTP Brute Force", lambda: sim_brute.run(attempts=10)),
+        ("Web Crawling", lambda: sim_crawl.run(pages=10))
     ]
     
     random.shuffle(attacks)

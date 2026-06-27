@@ -123,7 +123,7 @@ def start_live_capture(interface: str = None):
         interface = conf.iface.name if hasattr(conf.iface, "name") else conf.iface
         
     log.info(f"Binding to network interface: {interface}")
-    sniffer, session = create_sniffer(
+    sniffer = create_sniffer(
         input_file=None,
         input_interface=interface,
         output_mode="inference",
@@ -140,10 +140,18 @@ def start_live_capture(interface: str = None):
         log.info("Stopping capture...")
         sniffer.stop()
     finally:
-        if hasattr(session, "_gc_stop"):
-            session._gc_stop.set()
-            session._gc_thread.join(timeout=2.0)
-        session.flush_flows()
+        session = getattr(sniffer, "session", None)
+        if session:
+            if hasattr(session, "_gc_stop"):
+                session._gc_stop.set()
+                session._gc_thread.join(timeout=2.0)
+            if hasattr(session, "flush_flows"):
+                session.flush_flows()
+            elif hasattr(session, "garbage_collect"):
+                try:
+                    session.garbage_collect(None)
+                except Exception:
+                    pass
         log.info("Live capture stopped gracefully.")
 
 if __name__ == "__main__":

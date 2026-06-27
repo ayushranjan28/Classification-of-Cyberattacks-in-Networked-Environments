@@ -23,6 +23,8 @@ def run():
     print("=======================================================\n")
     log.info("🟢 [NORMAL] Generating safe background traffic...")
     
+    import random
+    import socket
     for i in range(20):
         url = urls[i % len(urls)]
         try:
@@ -30,6 +32,24 @@ def run():
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
             with urllib.request.urlopen(req, timeout=5) as response:
                 response.read()
+            
+            # Simulate flow in DB
+            try:
+                from live_capture.database import insert_flow
+                from demo.demo_live_data_generator import generate_features
+                insert_flow(
+                    src_ip="192.168.1.15", src_port=random.randint(50000, 60000),
+                    dst_ip=socket.gethostbyname(url.split("//")[1]), dst_port=443,
+                    protocol="6",
+                    risk_score=random.uniform(3.0, 14.0),
+                    risk_label="Low",
+                    predicted_attack="Normal",
+                    confidence=random.uniform(0.9, 0.99),
+                    features=generate_features(is_attack=False)
+                )
+            except Exception:
+                pass
+                
             time.sleep(1.5)  # Human pace
         except Exception as e:
             log.warning(f"Failed to fetch {url}: {e}")
