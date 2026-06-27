@@ -3,8 +3,8 @@ Real-time Behavioral Threat Detector.
 
 Works alongside the ML classifier by analyzing aggregate traffic patterns
 to detect attacks that individual flow classification might miss:
-- DDoS: Many flows to the same destination in a short time window
-- Port Scan: Flows to many different ports on the same destination
+- DDoS/HTTP Flood: Abnormally high outbound flow rate from source
+- Port Scan: Flows to many different destination IPs in a short window
 - Brute Force: Repeated connections to authentication ports (21, 22, 23, 3389)
 """
 import time
@@ -22,6 +22,10 @@ class BehavioralDetector:
 
     def __init__(self, window_seconds=30):
         self.window = window_seconds
+        # src_ip -> list of timestamps (total outbound rate)
+        self.src_flow_times = defaultdict(list)
+        # src_ip -> set of distinct dst_ips contacted
+        self.src_dst_ips_seen = defaultdict(set)
         # dest_ip -> list of timestamps
         self.dest_flow_times = defaultdict(list)
         # dest_ip -> set of dest_ports
@@ -45,9 +49,14 @@ class BehavioralDetector:
         now = time.time()
 
         # --- Update sliding windows ---
+        # Track outbound rate from source
+        self.src_flow_times[src_ip].append(now)
+        self.src_flow_times[src_ip] = self._prune(self.src_flow_times[src_ip])
+        self.src_dst_ips_seen[src_ip].add(dst_ip)
+
+        # Track per-destination
         self.dest_flow_times[dst_ip].append(now)
         self.dest_flow_times[dst_ip] = self._prune(self.dest_flow_times[dst_ip])
-
         self.dest_ports_seen[dst_ip].add(dst_port)
 
         if dst_port in AUTH_PORTS:
@@ -57,27 +66,29 @@ class BehavioralDetector:
 
         # --- Detection Rules ---
 
-        # 1. DDoS Detection: >50 flows to same dest IP within window
-        flow_count = len(self.dest_flow_times[dst_ip])
-        if flow_count >= 50:
-            confidence = min(flow_count / 100.0, 1.0)
+        # 1. HTTP Flood / DDoS: High outbound rate from a single source
+        #    >40 flows from same source in the window = flood
+        src_flow_count = len(self.src_flow_times[src_ip])
+        if src_flow_count >= 40:
+            confidence = min(src_flow_count / 80.0, 1.0)
             return {
                 "behavioral_attack": "HTTP_Flood",
                 "behavioral_confidence": confidence,
-                "behavioral_reason": f"DDoS: {flow_count} flows to {dst_ip} in {self.window}s window"
+                "behavioral_reason": f"DDoS: {src_flow_count} outbound flows from {src_ip} in {self.window}s"
             }
 
-        # 2. Port Scan Detection: >15 distinct ports on same dest IP within window
-        port_count = len(self.dest_ports_seen[dst_ip])
-        if port_count >= 15:
-            confidence = min(port_count / 50.0, 1.0)
+        # 2. Port Scan: Many distinct destination IPs from same source
+        #    >12 different IPs contacted = scanning
+        dst_ip_count = len(self.src_dst_ips_seen[src_ip])
+        if dst_ip_count >= 12:
+            confidence = min(dst_ip_count / 25.0, 1.0)
             return {
                 "behavioral_attack": "Port_Scan",
                 "behavioral_confidence": confidence,
-                "behavioral_reason": f"Port Scan: {port_count} distinct ports scanned on {dst_ip}"
+                "behavioral_reason": f"Scan: {dst_ip_count} distinct hosts contacted by {src_ip}"
             }
 
-        # 3. Brute Force Detection: >10 auth-port connections in window
+        # 3. Brute Force: Repeated connections to auth ports
         if dst_port in AUTH_PORTS:
             key = f"{dst_ip}:{dst_port}"
             auth_count = len(self.auth_attempts[key])
