@@ -80,6 +80,18 @@ def start_live_capture(interface: str = None):
     # 1. Initialize SQLite Database
     init_db()
     
+    # Wipe old flows on startup for clean demo runs
+    import sqlite3
+    from live_capture.database import DB_PATH
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("DELETE FROM live_flows")
+        conn.commit()
+        conn.close()
+        log.info("🧹 Wiped old traffic data for a clean session.")
+    except Exception as e:
+        log.warning(f"Failed to wipe database on startup: {e}")
+        
     # 2. Load ML Models
     engine = LiveInferenceEngine()
     

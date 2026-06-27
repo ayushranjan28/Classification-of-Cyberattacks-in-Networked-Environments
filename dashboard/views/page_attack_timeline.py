@@ -98,7 +98,7 @@ def render():
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
     st.markdown("### 🔥 Attack Density Heatmap")
 
-    # Create windowed counts
+    n = len(timeline_df)
     window_size = max(1, n // 20)
     windows = []
     for i in range(0, n, window_size):
