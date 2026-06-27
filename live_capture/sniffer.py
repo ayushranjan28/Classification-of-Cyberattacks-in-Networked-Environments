@@ -7,9 +7,10 @@ import argparse
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from live_capture.inference import LiveInferenceEngine
-from live_capture.database import init_db
+from live_capture.database import init_db, update_flow_attack
 from live_capture.firewall import block_ip
 from live_capture.notifier import send_notification
+from live_capture.behavioral_detector import BehavioralDetector
 from utils.logger import get_logger
 
 # Import CICFlowMeter components
@@ -24,6 +25,7 @@ class InferenceWriter(OutputWriter):
     """Custom CICFlowMeter writer that sends flows to our ML inference engine."""
     def __init__(self, engine: LiveInferenceEngine) -> None:
         self.engine = engine
+        self.behavioral = BehavioralDetector(window_seconds=30)
 
     def write(self, data: dict) -> None:
         try:
@@ -34,8 +36,28 @@ class InferenceWriter(OutputWriter):
             dst_port = int(data.get("dst_port", 0))
             protocol = str(data.get("protocol", "Unknown"))
             
-            # Send the entire 84-feature dict to the ML engine
+            # 1. ML Inference (per-flow classification)
             result = self.engine.score_flow(data, src_ip, src_port, dst_ip, dst_port, protocol)
+            
+            # 2. Behavioral Analysis (aggregate pattern detection)
+            beh = self.behavioral.analyze(src_ip, dst_ip, dst_port)
+            
+            # If behavioral detector found an attack, override the ML result
+            if beh["behavioral_attack"] and result["predicted_attack"] == "Normal":
+                result["predicted_attack"] = beh["behavioral_attack"]
+                result["confidence"] = beh["behavioral_confidence"]
+                result["risk_score"] = max(result["risk_score"], 75.0 + beh["behavioral_confidence"] * 25.0)
+                result["risk_label"] = "Critical" if result["risk_score"] >= 81 else "High"
+                # Update the database row with the corrected attack type
+                update_flow_attack(
+                    src_ip=src_ip, src_port=src_port,
+                    dst_ip=dst_ip, dst_port=dst_port,
+                    predicted_attack=result["predicted_attack"],
+                    risk_score=result["risk_score"],
+                    risk_label=result["risk_label"],
+                    confidence=result["confidence"]
+                )
+                log.warning(f"🚨 BEHAVIORAL ATTACK [{result['risk_label']}]: {src_ip}:{src_port} -> {dst_ip}:{dst_port} | {beh['behavioral_reason']}")
             
             # Active Defense & Logging
             if result["predicted_attack"] != "Normal":

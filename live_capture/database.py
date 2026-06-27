@@ -103,3 +103,25 @@ def get_database_stats():
     
     conn.close()
     return {"total": total, "threats": threats, "critical": critical}
+
+def update_flow_attack(src_ip: str, src_port: int, dst_ip: str, dst_port: int,
+                       predicted_attack: str, risk_score: float, risk_label: str,
+                       confidence: float):
+    """Update the most recent matching flow with behavioral detection results."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        UPDATE live_flows 
+        SET predicted_attack = ?, risk_score = ?, risk_label = ?, confidence = ?
+        WHERE id = (
+            SELECT id FROM live_flows 
+            WHERE src_ip = ? AND src_port = ? AND dst_ip = ? AND dst_port = ?
+            ORDER BY id DESC LIMIT 1
+        )
+    """, (predicted_attack, risk_score, risk_label, confidence,
+          src_ip, src_port, dst_ip, dst_port))
+    
+    conn.commit()
+    conn.close()
+
