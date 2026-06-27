@@ -5,6 +5,7 @@ title AI-SOC Intrusion Prevention System
 net session >nul 2>&1
 if %errorLevel% == 0 (
     echo Administrator privileges confirmed.
+    cd /d "%~dp0"
 ) else (
     echo Requesting Administrator privileges...
     powershell -Command "Start-Process '%~dpnx0' -Verb RunAs"
