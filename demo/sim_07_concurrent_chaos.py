@@ -26,11 +26,11 @@ def run_concurrently():
     threads.append(t_normal)
     
     # 2. Start Port Scan
-    t_scan = threading.Thread(target=lambda: sim_scan.run(end_port=50))
+    t_scan = threading.Thread(target=lambda: sim_scan.run(rounds=1))
     threads.append(t_scan)
     
     # 3. Start HTTP DDoS
-    t_dos = threading.Thread(target=lambda: sim_dos.run(requests=150))
+    t_dos = threading.Thread(target=lambda: sim_dos.run(requests_count=50))
     threads.append(t_dos)
     
     # 4. Start Brute Force
