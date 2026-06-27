@@ -83,3 +83,20 @@ def get_recent_flows(limit: int = 50):
     rows = cursor.fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+def get_database_stats():
+    """Retrieve true total counts from the database instead of relying on frontend limits."""
+    if not DB_PATH.exists():
+        return {"total": 0, "threats": 0}
+        
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT COUNT(*) FROM live_flows")
+    total = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM live_flows WHERE predicted_attack != 'BENIGN'")
+    threats = cursor.fetchone()[0]
+    
+    conn.close()
+    return {"total": total, "threats": threats}

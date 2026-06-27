@@ -10,7 +10,7 @@ import sys
 from streamlit_autorefresh import st_autorefresh
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from live_capture.database import get_recent_flows
+from live_capture.database import get_recent_flows, get_database_stats
 
 def _create_risk_gauge(score: float) -> go.Figure:
     """Create an animated risk gauge chart."""
@@ -77,10 +77,11 @@ def render():
         return
 
     df = pd.DataFrame(flows)
+    stats = get_database_stats()
     
-    # Compute live risk metrics
-    total_packets = len(df)
-    n_attacks = len(df[df["predicted_attack"] != "BENIGN"])
+    # Calculate live stats
+    total_packets = stats["total"]
+    n_attacks = stats["threats"]
     n_critical = len(df[df["risk_label"] == "Critical"])
     avg_risk = df["risk_score"].mean()
     
