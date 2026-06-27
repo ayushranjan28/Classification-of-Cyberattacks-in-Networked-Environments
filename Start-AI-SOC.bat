@@ -19,7 +19,7 @@ echo.
 
 :: Start the Streamlit Dashboard in the background
 echo Starting Streamlit Dashboard...
-start /B python -m streamlit run dashboard/app.py --server.port 8501
+start /B python -m streamlit run dashboard/app.py --server.port 8501 --server.headless true
 
 :: Wait a moment for Streamlit to initialize
 timeout /t 3 /nobreak >nul
