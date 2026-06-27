@@ -18,7 +18,7 @@ def run(target_ip="93.184.215.14", target_port=80, requests=200): # example.com
     def send_req():
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(0.2)
+                s.settimeout(2.0)
                 s.connect((target_ip, target_port))
                 s.sendall(b"GET / HTTP/1.1\r\nHost: " + target_ip.encode() + b"\r\n\r\n")
         except (socket.timeout, ConnectionRefusedError):

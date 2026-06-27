@@ -18,7 +18,7 @@ def run(target_ip="45.33.32.156", start_port=1, end_port=200): # scanme.nmap.org
     def scan_port(port):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(0.1)
+                s.settimeout(1.0)
                 s.connect((target_ip, port))
         except (socket.timeout, ConnectionRefusedError):
             pass

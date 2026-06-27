@@ -17,7 +17,7 @@ def run(target_ip="195.144.107.198", target_port=21, attempts=150): # test.rebex
     for i in range(attempts):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(0.5)
+                s.settimeout(2.0)
                 s.connect((target_ip, target_port))
                 # Simulate login packet
                 s.sendall(b"USER admin\r\nPASS password123\r\n")
