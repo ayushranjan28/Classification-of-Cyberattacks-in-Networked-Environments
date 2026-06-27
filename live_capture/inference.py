@@ -65,26 +65,24 @@ class LiveInferenceEngine:
         predicted_attack = self.pipeline.encoder.get_label_name(class_idx)
         
         # 2. Anomaly Score (Isolation Forest)
-        # IF returns 1 (normal) or -1 (anomaly), score_samples returns negative anomaly score
         iso_score = self.iso_forest.score_samples(X_norm)[0]
-        # Convert iso_score (negative) to a positive anomaly measure
-        anomaly_score = np.array([abs(iso_score)])
+        # score_samples returns negative values; more negative = more anomalous
+        # Typical range is roughly -0.7 (normal) to -1.0 (anomaly)
+        # Convert to 0-1 scale: clamp to [-1, -0.3] then map to [0, 1]
+        anomaly_01 = float(np.clip((-iso_score - 0.3) / 0.7, 0.0, 1.0))
         
-        # 3. Ensemble Risk Calculation
-        # For classifier_probs, pass the attack probability (1 - P(Normal))
+        # 3. Compute risk score directly (simplified for single-flow live inference)
+        # The classifier is the most reliable signal for attack type
         normal_idx = self.pipeline.encoder.label_map.get("Normal", 0)
-        prob_attack = np.array([1.0 - class_probs[normal_idx]])
+        prob_attack = float(1.0 - class_probs[normal_idx])
         
-        risk_score_arr = self.ensemble.compute_risk(
-            classifier_probs=prob_attack,
-            anomaly_scores=anomaly_score,
-            gnn_risk=None,       # Skip graph for real-time single flows
-            temporal_probs=None  # Skip temporal for single flows
-        )
-        risk_score = float(risk_score_arr[0])
+        # Weighted combination: classifier is primary, anomaly is secondary
+        # Use fixed weights: 70% classifier, 30% anomaly detector
+        risk_score = (0.70 * prob_attack + 0.30 * anomaly_01) * 100.0
+        risk_score = float(np.clip(risk_score, 0, 100))
         
         # Categorize risk
-        risk_label = self.ensemble.categorize_risk(risk_score_arr)[0]
+        risk_label = self.ensemble.categorize_risk(np.array([risk_score]))[0]
         
         # Log to database
         insert_flow(
@@ -106,3 +104,4 @@ class LiveInferenceEngine:
             "risk_score": risk_score,
             "risk_label": risk_label
         }
+
