@@ -47,12 +47,14 @@ def insert_flow(src_ip: str, src_port: int, dst_ip: str, dst_port: int,
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
+    local_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
     cursor.execute("""
         INSERT INTO live_flows (
-            src_ip, src_port, dst_ip, dst_port, protocol,
+            timestamp, src_ip, src_port, dst_ip, dst_port, protocol,
             risk_score, risk_label, predicted_attack, confidence, features_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (src_ip, src_port, dst_ip, dst_port, protocol, 
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (local_time, src_ip, src_port, dst_ip, dst_port, protocol, 
           risk_score, risk_label, predicted_attack, confidence, json.dumps(features)))
     
     conn.commit()
@@ -70,7 +72,7 @@ def get_recent_flows(limit: int = 50):
     cursor.execute("""
         SELECT 
             id, 
-            datetime(timestamp, 'localtime') as timestamp,
+            timestamp,
             src_ip, src_port, dst_ip, dst_port, protocol, 
             risk_score, risk_label, predicted_attack, confidence, features_json
         FROM live_flows 

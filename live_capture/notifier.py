@@ -14,15 +14,17 @@ def send_notification(title: str, message: str, duration: int = 5):
     
     def _notify():
         try:
-            # icon_path can be added if we have a custom icon
+            # We remove threaded=True because we are already spawning this in our own background thread.
+            # win10toast's internal threading can cause COM/WPARAM errors when nested.
             toaster.show_toast(
                 title=title,
                 msg=message,
                 duration=duration,
-                threaded=True
+                threaded=False
             )
         except Exception as e:
-            log.error(f"Failed to send Windows notification: {e}")
+            # Suppress any deep win32gui/ctypes errors so the sniffer daemon never crashes
+            log.warning(f"Native Windows notification suppressed due to OS error: {e}")
             
     # Always spawn in a thread since win10toast's threaded=True sometimes blocks slightly during initialization
     t = threading.Thread(target=_notify, daemon=True)
