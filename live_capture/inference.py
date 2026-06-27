@@ -72,8 +72,8 @@ class LiveInferenceEngine:
         
         # 3. Ensemble Risk Calculation
         # For classifier_probs, pass the attack probability (1 - P(Normal))
-        # Assuming class 0 is Normal
-        prob_attack = np.array([1.0 - class_probs[0]])
+        normal_idx = self.pipeline.encoder.label_map.get("Normal", 0)
+        prob_attack = np.array([1.0 - class_probs[normal_idx]])
         
         risk_score_arr = self.ensemble.compute_risk(
             classifier_probs=prob_attack,
