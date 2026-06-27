@@ -9,13 +9,33 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from config import ATTACK_TO_MITRE
 
 
+from live_capture.database import get_recent_flows
+from streamlit_autorefresh import st_autorefresh
+
 def render():
-    st.markdown("# 🎯 MITRE ATT&CK Integration")
+    st_autorefresh(interval=5000, limit=None, key="mitre_refresh")
+    st.markdown("# 🎯 Live MITRE ATT&CK Mapping")
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+
+    flows = get_recent_flows(limit=1000)
+    
+    # Determine default selection based on active live threats
+    default_attack = None
+    if flows:
+        df = pd.DataFrame(flows)
+        attacks = df[df["predicted_attack"] != "BENIGN"]["predicted_attack"]
+        if not attacks.empty:
+            default_attack = attacks.value_counts().index[0]
+            st.warning(f"🔴 Auto-tracking Active Threat: **{default_attack}**")
 
     # Attack type selector
     attack_types = [k for k in ATTACK_TO_MITRE.keys() if k != "Normal"]
-    selected = st.selectbox("Select Attack Type", attack_types, index=0)
+    
+    default_idx = 0
+    if default_attack and default_attack in attack_types:
+        default_idx = attack_types.index(default_attack)
+        
+    selected = st.selectbox("Select Attack Type", attack_types, index=default_idx)
 
     info = ATTACK_TO_MITRE[selected]
 

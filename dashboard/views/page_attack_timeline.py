@@ -12,45 +12,29 @@ import joblib
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 
+from live_capture.database import get_recent_flows
+from streamlit_autorefresh import st_autorefresh
+
 def render():
-    st.markdown("# 📅 Attack Timeline")
+    st_autorefresh(interval=2000, limit=None, key="timeline_refresh")
+    st.markdown("# 📅 Live Attack Timeline")
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
-    # Try to load real data
-    try:
-        from config import PREPROCESSED_DIR, SAVED_MODELS_DIR
-        from preprocessing.encoder import AttackEncoder
-        data = joblib.load(PREPROCESSED_DIR / "processed_data.joblib")
-        model = joblib.load(SAVED_MODELS_DIR / "best_classifier.joblib")
-        encoder = AttackEncoder.load()
-        y_pred = model.predict(data["X_test"])
-        pred_labels = encoder.inverse_transform(y_pred)
-        has_data = True
-    except Exception:
-        has_data = False
+    flows = get_recent_flows(limit=1000)
+    
+    if not flows:
+        st.info("📊 Waiting for live network traffic. Start the background sniffer by running `Start-AI-SOC.bat`.")
+        return
 
-    if has_data:
-        # Create timeline from test set ordering
-        n = len(pred_labels)
-        timeline_df = pd.DataFrame({
-            "Index": range(n),
-            "Attack_Type": pred_labels,
-            "Risk_Score": np.random.uniform(0, 100, n),  # approximate
-        })
-    else:
-        st.info("📊 Showing simulated timeline. Train models for real data.")
-        np.random.seed(42)
-        n = 500
-        attack_types = np.random.choice(
-            ["Normal", "Brute_Force", "Port_Scan", "HTTP_DDoS", "ICMP_Flood", "Web_Crwling"],
-            size=n, p=[0.5, 0.25, 0.1, 0.08, 0.04, 0.03]
-        )
-        timeline_df = pd.DataFrame({
-            "Index": range(n),
-            "Attack_Type": attack_types,
-            "Risk_Score": [np.random.uniform(0, 30) if a == "Normal"
-                          else np.random.uniform(40, 100) for a in attack_types],
-        })
+    # Create timeline from live database
+    df = pd.DataFrame(flows)
+    
+    timeline_df = pd.DataFrame({
+        "Index": range(len(df)),
+        "Attack_Type": df["predicted_attack"],
+        "Risk_Score": df["risk_score"],
+        "Time": df["timestamp"]
+    })
 
     # Timeline chart
     st.markdown("### Attack Progression Over Flow Sequence")

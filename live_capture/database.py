@@ -68,8 +68,13 @@ def get_recent_flows(limit: int = 50):
     cursor = conn.cursor()
     
     cursor.execute("""
-        SELECT * FROM live_flows 
-        ORDER BY timestamp DESC 
+        SELECT 
+            id, 
+            datetime(timestamp, 'localtime') as timestamp,
+            src_ip, src_port, dst_ip, dst_port, protocol, 
+            risk_score, risk_label, predicted_attack, confidence, features_json
+        FROM live_flows 
+        ORDER BY id DESC 
         LIMIT ?
     """, (limit,))
     

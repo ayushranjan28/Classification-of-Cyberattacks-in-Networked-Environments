@@ -74,41 +74,52 @@ def render():
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
     # Single prediction explanation
-    st.markdown("### 🔬 Individual Prediction Explanation")
+    st.markdown("### 🔬 Live Anomaly Explanation")
+    
+    from live_capture.database import get_recent_flows
+    flows = get_recent_flows(limit=200)
+    
+    import json
+    # Find the most recent attack
+    latest_attack = None
+    if flows:
+        df = pd.DataFrame(flows)
+        attacks = df[df["predicted_attack"] != "BENIGN"]
+        if not attacks.empty:
+            latest_attack = attacks.iloc[0].to_dict()
 
-    if has_shap:
-        sample_idx = st.slider("Select Sample", 0, min(len(data["X_test"])-1, 999), 0)
-        X_sample = data["X_test"].iloc[[sample_idx]] if hasattr(data["X_test"], "iloc") else data["X_test"][sample_idx:sample_idx+1]
-        pred = model.predict(X_sample)[0]
-        proba = model.predict_proba(X_sample)[0]
-        pred_label = encoder.inverse_transform([pred])[0]
-        confidence = proba.max()
-
-        # Generate explanation
+    if latest_attack and has_shap:
+        pred_label = latest_attack["predicted_attack"]
+        confidence = latest_attack["confidence"]
+        
+        # Parse features from live DB
         try:
+            live_feats = json.loads(latest_attack["features_json"])
+            # Filter to match model columns
+            ordered_feats = [live_feats.get(f, 0) for f in feature_names]
+            X_sample = pd.DataFrame([ordered_feats], columns=feature_names)
+            
             from explainability.shap_explainer import ShapExplainer
             explainer = ShapExplainer(model, feature_names)
             explainer.fit()
-            explanation = explainer.explain_single(X_sample.values if hasattr(X_sample, "values") else X_sample)
+            explanation = explainer.explain_single(X_sample.values)
             explanation_text = explanation.get("explanation_text", "")
             top_features = explanation.get("top_features", [])
-        except Exception:
-            explanation_text = f"Predicted {pred_label} with {confidence:.1%} confidence."
+        except Exception as e:
+            explanation_text = f"Predicted {pred_label} with {confidence:.1%} confidence. (Error parsing features: {e})"
             top_features = []
+            
+    elif latest_attack and not has_shap:
+        pred_label = latest_attack["predicted_attack"]
+        confidence = latest_attack["confidence"]
+        explanation_text = f"Live anomaly detected: {pred_label} (Confidence: {confidence:.1%}). Train models to see SHAP values."
+        top_features = []
     else:
-        pred_label = "Brute_Force"
-        confidence = 0.94
-        explanation_text = ("Risk assessment — Confidence: 94.2%. Key factors: "
-                          "flow packets/s increased risk (SHAP: +0.182, value: 2847.31); "
-                          "syn flag cnt increased risk (SHAP: +0.156, value: 1.00); "
-                          "pkt len mean decreased risk (SHAP: -0.089, value: 12.45).")
-        top_features = [
-            {"feature": "Flow_Pkts/s", "shap_value": 0.182, "feature_value": 2847.31},
-            {"feature": "SYN_Flag_Cnt", "shap_value": 0.156, "feature_value": 1.0},
-            {"feature": "Tot_Fwd_Pkts", "shap_value": 0.134, "feature_value": 45.0},
-            {"feature": "Flow_Duration", "shap_value": -0.098, "feature_value": 120.0},
-            {"feature": "Pkt_Len_Mean", "shap_value": -0.089, "feature_value": 12.45},
-        ]
+        st.success("✅ No recent anomalies detected in the live traffic stream.")
+        pred_label = "BENIGN"
+        confidence = 1.0
+        explanation_text = "Traffic is normal."
+        top_features = []
 
     # Display explanation card
     risk_color = "#EF4444" if confidence > 0.8 else "#F59E0B" if confidence > 0.5 else "#22C55E"

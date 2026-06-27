@@ -11,23 +11,12 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 
-def _generate_demo_graph():
-    """Generate a demo network graph."""
-    np.random.seed(42)
-    G = nx.barabasi_albert_graph(60, 3, seed=42)
-    G = G.to_directed()
-    risk_scores = {}
-    for node in G.nodes():
-        risk_scores[node] = np.random.choice(
-            [np.random.uniform(0, 30), np.random.uniform(30, 60),
-             np.random.uniform(60, 80), np.random.uniform(80, 100)],
-            p=[0.5, 0.25, 0.15, 0.1]
-        )
-    return G, risk_scores
-
+from live_capture.database import get_recent_flows
+from streamlit_autorefresh import st_autorefresh
 
 def render():
-    st.markdown("# 🕸️ Network Communication Graph")
+    st_autorefresh(interval=2000, limit=None, key="network_refresh")
+    st.markdown("# 🕸️ Live Network Communication Graph")
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
@@ -38,7 +27,28 @@ def render():
     with col3:
         show_labels = st.checkbox("Show Node Labels", value=False)
 
-    G, risk_scores = _generate_demo_graph()
+    flows = get_recent_flows(limit=1000)
+    
+    if not flows:
+        st.info("📊 Waiting for live network traffic. Start the background sniffer by running `Start-AI-SOC.bat`.")
+        return
+        
+    # Build NetworkX graph from live flows
+    G = nx.DiGraph()
+    risk_scores = {}
+    
+    for flow in flows:
+        src = flow["src_ip"]
+        dst = flow["dst_ip"]
+        score = flow["risk_score"]
+        
+        G.add_edge(src, dst)
+        
+        # Keep highest risk score for nodes
+        if src not in risk_scores or score > risk_scores[src]:
+            risk_scores[src] = score
+        if dst not in risk_scores or score > risk_scores[dst]:
+            risk_scores[dst] = score
 
     # Apply risk filter
     if min_risk > 0:
