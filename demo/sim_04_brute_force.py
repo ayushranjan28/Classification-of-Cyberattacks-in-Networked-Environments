@@ -8,7 +8,7 @@ from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-def run(target_ip="127.0.0.1", target_port=21, attempts=150):
+def run(target_ip="195.144.107.198", target_port=21, attempts=150): # test.rebex.net
     print("\n=======================================================")
     print("   AI-SOC Demo: FTP/SSH Brute Force Attack")
     print("=======================================================\n")

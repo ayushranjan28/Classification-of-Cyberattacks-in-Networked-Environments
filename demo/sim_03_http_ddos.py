@@ -9,7 +9,7 @@ from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-def run(target_ip="127.0.0.1", target_port=80, requests=1000):
+def run(target_ip="93.184.215.14", target_port=80, requests=200): # example.com
     print("\n=======================================================")
     print("   AI-SOC Demo: HTTP DDoS Flood Attack")
     print("=======================================================\n")

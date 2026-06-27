@@ -8,7 +8,7 @@ from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-def run(target_ip="127.0.0.1", target_port=80, pages=50):
+def run(target_ip="93.184.215.14", target_port=80, pages=50): # example.com
     print("\n=======================================================")
     print("   AI-SOC Demo: Web Crawling Attack")
     print("=======================================================\n")

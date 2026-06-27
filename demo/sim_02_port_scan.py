@@ -9,7 +9,7 @@ from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-def run(target_ip="127.0.0.1", start_port=1, end_port=1500):
+def run(target_ip="45.33.32.156", start_port=1, end_port=200): # scanme.nmap.org
     print("\n=======================================================")
     print("   AI-SOC Demo: Stealth Port Scan Attack")
     print("=======================================================\n")
