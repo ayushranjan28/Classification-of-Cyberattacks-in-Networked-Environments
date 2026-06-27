@@ -8,7 +8,7 @@ from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-def run(target_ip="93.184.215.14", target_port=80, pages=50): # example.com
+def run(target_ip="93.184.215.14", target_port=80, pages=200): # example.com
     print("\n=======================================================")
     print("   AI-SOC Demo: Web Crawling Attack")
     print("=======================================================\n")
@@ -38,6 +38,7 @@ def run(target_ip="93.184.215.14", target_port=80, pages=50): # example.com
                 risk_label="Medium",
                 predicted_attack="Web_Crwling",
                 confidence=random.uniform(0.65, 0.85),
+                explanation="Simulated attack.",
                 features=generate_features(is_attack=False)
             )
         except Exception:

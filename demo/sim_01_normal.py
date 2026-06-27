@@ -45,7 +45,8 @@ def run():
                     risk_label="Low",
                     predicted_attack="Normal",
                     confidence=random.uniform(0.9, 0.99),
-                    features=generate_features(is_attack=False)
+                    explanation="Simulated attack.",
+                features=generate_features(is_attack=False)
                 )
             except Exception:
                 pass

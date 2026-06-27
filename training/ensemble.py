@@ -72,10 +72,10 @@ class EnsembleRiskScorer:
 
         if anomaly_scores is not None:
             # Normalize anomaly scores to [0, 1]
-            if anomaly_scores.max() > 0:
+            if n_samples > 1 and anomaly_scores.max() > 0:
                 norm_scores = np.clip(anomaly_scores / np.percentile(anomaly_scores, 99), 0, 1)
             else:
-                norm_scores = anomaly_scores
+                norm_scores = np.clip(anomaly_scores, 0, 1)
             risk += self.weights["autoencoder"] * norm_scores
             active_weight += self.weights["autoencoder"]
 

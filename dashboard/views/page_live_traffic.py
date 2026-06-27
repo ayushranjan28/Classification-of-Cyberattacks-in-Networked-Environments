@@ -55,7 +55,7 @@ def render():
         st.subheader("🔴 Live Flow Stream")
         st.dataframe(
             display_df.style.apply(highlight_risk, axis=1),
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
         
@@ -69,7 +69,7 @@ def render():
                 attack_counts.columns = ["Attack Type", "Count"]
                 fig1 = px.pie(attack_counts, names="Attack Type", values="Count", hole=0.4, title="Detected Attack Types")
                 fig1.update_traces(marker=dict(colors=["#EF4444", "#F97316", "#F59E0B"]))
-                st.plotly_chart(fig1, use_container_width=True)
+                st.plotly_chart(fig1, width="stretch")
             else:
                 st.success("No attacks detected in the recent flow buffer.")
                 
@@ -79,4 +79,4 @@ def render():
             
             colors = {"Low": "#10B981", "Medium": "#F59E0B", "High": "#F97316", "Critical": "#EF4444"}
             fig2 = px.bar(risk_dist, x="Risk Level", y="Count", title="Risk Level Distribution", color="Risk Level", color_discrete_map=colors)
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, width="stretch")

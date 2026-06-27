@@ -120,7 +120,7 @@ def render():
             "Next Stages": ", ".join(info.get("next_techniques", [])[:2]),
             "# Mitigations": len(info.get("mitigations", [])),
         })
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, height=300)
+    st.dataframe(pd.DataFrame(rows), width="stretch", height=300)
 
     # Knowledge base search
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)

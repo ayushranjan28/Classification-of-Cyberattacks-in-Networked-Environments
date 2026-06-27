@@ -112,6 +112,8 @@ class ShapExplainer:
         # SHAP values for predicted class
         if isinstance(sv, list):
             class_shap = sv[pred][0]
+        elif isinstance(sv, np.ndarray) and sv.ndim == 3:
+            class_shap = sv[0, :, pred]
         else:
             class_shap = sv[0]
 

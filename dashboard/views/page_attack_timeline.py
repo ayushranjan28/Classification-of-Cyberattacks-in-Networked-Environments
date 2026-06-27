@@ -61,7 +61,7 @@ def render():
         legend=dict(orientation="h", y=-0.15),
         hovermode="closest"
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
@@ -92,7 +92,7 @@ def render():
         xaxis_title="Kill Chain Phase", yaxis_title="Attack Count",
         font=dict(color="#E0E0E0"), height=400,
     )
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, width="stretch")
 
     # Attack frequency heatmap
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
@@ -121,4 +121,4 @@ def render():
         paper_bgcolor="#0E1117", plot_bgcolor="#0E1117",
         font=dict(color="#E0E0E0"), height=350,
     )
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig3, width="stretch")

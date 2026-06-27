@@ -35,7 +35,7 @@ SCAN_TARGETS = [
     ("https://www.apache.org", 443),
 ]
 
-def run(rounds=5):
+def run(rounds=10):
     print("\n=======================================================")
     print("   AI-SOC Demo: Stealth Port Scan Attack")
     print("=======================================================\n")
@@ -68,6 +68,7 @@ def run(rounds=5):
                 risk_label="High",
                 predicted_attack="Port_Scan",
                 confidence=random.uniform(0.85, 0.95),
+                explanation="Simulated attack.",
                 features=generate_features(is_attack=True)
             )
         except Exception:

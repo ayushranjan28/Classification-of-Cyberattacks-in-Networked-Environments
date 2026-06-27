@@ -69,7 +69,7 @@ def render():
         font=dict(color="#E0E0E0"), height=550,
         margin=dict(l=200),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
@@ -157,7 +157,7 @@ def render():
             font=dict(color="#E0E0E0"), height=350,
             margin=dict(l=180),
         )
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width="stretch")
 
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
@@ -182,4 +182,4 @@ def render():
         xaxis_title=f"{selected_feat} Value", yaxis_title="SHAP Value",
         font=dict(color="#E0E0E0"), height=400,
     )
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig3, width="stretch")

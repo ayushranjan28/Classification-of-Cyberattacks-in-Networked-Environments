@@ -36,6 +36,11 @@ class InferenceWriter(OutputWriter):
             dst_port = int(data.get("dst_port", 0))
             protocol = str(data.get("protocol", "Unknown"))
             
+            # Skip flows that are always benign (loopback, broadcast, multicast)
+            _SKIP_PREFIXES = ("127.", "0.", "224.", "239.", "255.", "169.254.", "ff", "::1", "fe80:")
+            if any(src_ip.startswith(p) or dst_ip.startswith(p) for p in _SKIP_PREFIXES):
+                return
+            
             # 1. ML Inference (per-flow classification)
             result = self.engine.score_flow(data, src_ip, src_port, dst_ip, dst_port, protocol)
             
@@ -123,7 +128,7 @@ def start_live_capture(interface: str = None):
         interface = conf.iface.name if hasattr(conf.iface, "name") else conf.iface
         
     log.info(f"Binding to network interface: {interface}")
-    sniffer = create_sniffer(
+    sniffer, session = create_sniffer(
         input_file=None,
         input_interface=interface,
         output_mode="inference",
@@ -140,7 +145,6 @@ def start_live_capture(interface: str = None):
         log.info("Stopping capture...")
         sniffer.stop()
     finally:
-        session = getattr(sniffer, "session", None)
         if session:
             if hasattr(session, "_gc_stop"):
                 session._gc_stop.set()

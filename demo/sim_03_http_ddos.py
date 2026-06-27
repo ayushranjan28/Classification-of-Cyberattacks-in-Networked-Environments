@@ -54,6 +54,7 @@ def run(requests_count=200):
                 risk_label="Critical",
                 predicted_attack="HTTP_DDoS",
                 confidence=random.uniform(0.80, 0.95),
+                explanation="Simulated attack.",
                 features=generate_features(is_attack=True)
             )
         except Exception:

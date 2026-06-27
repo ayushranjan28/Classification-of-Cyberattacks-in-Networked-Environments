@@ -78,5 +78,5 @@ This script runs the entire end-to-end pipeline:
 ---
 
 ## 🤝 Developed By
-**Ayush Ranjan**  
+**Ayush Ranjan,Hitha Gatiputi, Deeksha Verma, Hrithik Bhattacharya**  
 *Built for the IEEE DataPort Hackathon 2025.*

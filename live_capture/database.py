@@ -33,6 +33,7 @@ def init_db():
             risk_label TEXT,
             predicted_attack TEXT,
             confidence REAL,
+            explanation TEXT,
             features_json TEXT
         )
     """)
@@ -42,7 +43,7 @@ def init_db():
 
 def insert_flow(src_ip: str, src_port: int, dst_ip: str, dst_port: int, 
                 protocol: str, risk_score: float, risk_label: str, 
-                predicted_attack: str, confidence: float, features: dict):
+                predicted_attack: str, confidence: float, explanation: str, features: dict):
     """Insert a processed flow prediction into the database."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -52,10 +53,10 @@ def insert_flow(src_ip: str, src_port: int, dst_ip: str, dst_port: int,
     cursor.execute("""
         INSERT INTO live_flows (
             timestamp, src_ip, src_port, dst_ip, dst_port, protocol,
-            risk_score, risk_label, predicted_attack, confidence, features_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            risk_score, risk_label, predicted_attack, confidence, explanation, features_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (local_time, src_ip, src_port, dst_ip, dst_port, protocol, 
-          risk_score, risk_label, predicted_attack, confidence, json.dumps(features)))
+          risk_score, risk_label, predicted_attack, confidence, explanation, json.dumps(features)))
     
     conn.commit()
     conn.close()
@@ -74,7 +75,7 @@ def get_recent_flows(limit: int = 50):
             id, 
             timestamp,
             src_ip, src_port, dst_ip, dst_port, protocol, 
-            risk_score, risk_label, predicted_attack, confidence, features_json
+            risk_score, risk_label, predicted_attack, confidence, explanation, features_json
         FROM live_flows 
         ORDER BY id DESC 
         LIMIT ?

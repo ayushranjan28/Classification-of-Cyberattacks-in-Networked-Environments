@@ -64,7 +64,7 @@ def render():
         "F1 Score": "{:.4f}", "ROC AUC": "{:.4f}",
         "Training Time (s)": "{:.1f}", "Memory (MB)": "{:.0f}"
     })
-    st.dataframe(styled, use_container_width=True, height=220)
+    st.dataframe(styled, width="stretch", height=220)
 
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
@@ -92,7 +92,7 @@ def render():
             yaxis=dict(range=[0.85, 1.0]),
             legend=dict(orientation="h", y=-0.15),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     with col2:
         st.markdown("### ⏱️ Training Efficiency")
@@ -113,7 +113,7 @@ def render():
         )
         fig2.update_yaxes(title_text="Time (s)", secondary_y=False)
         fig2.update_yaxes(title_text="Memory (MB)", secondary_y=True)
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, width="stretch")
 
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
@@ -152,7 +152,7 @@ def render():
         paper_bgcolor="#0E1117", plot_bgcolor="#0E1117",
         font=dict(color="#E0E0E0"), height=500,
     )
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig3, width="stretch")
 
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
@@ -184,7 +184,7 @@ def render():
         font=dict(color="#E0E0E0"), height=500,
         legend=dict(x=0.55, y=0.1, bgcolor="rgba(14,17,23,0.8)"),
     )
-    st.plotly_chart(fig4, use_container_width=True)
+    st.plotly_chart(fig4, width="stretch")
 
 
 def _demo_cm_data():

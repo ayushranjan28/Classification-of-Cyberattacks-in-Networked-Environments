@@ -104,7 +104,7 @@ def render():
     with col1:
         st.markdown("### Live Threat Level")
         fig = _create_risk_gauge(avg_risk)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
         # Risk distribution
         cat_counts = df["risk_label"].value_counts()
@@ -136,7 +136,7 @@ def render():
                 showlegend=True,
                 legend=dict(font=dict(color="#E0E0E0")),
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.success("✅ No attacks currently detected in the live buffer.")
             # Show empty chart
@@ -146,7 +146,7 @@ def render():
                 height=400,
                 annotations=[dict(text="No Threats Active", x=0.5, y=0.5, font_size=20, showarrow=False)]
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
@@ -156,7 +156,7 @@ def render():
     # Sort by risk score
     highest_risk_df = df.sort_values(by="risk_score", ascending=False).head(15)
     
-    display_df = highest_risk_df[["timestamp", "src_ip", "dst_ip", "predicted_attack", "risk_label", "risk_score", "confidence"]].copy()
+    display_df = highest_risk_df[["timestamp", "src_ip", "dst_ip", "predicted_attack", "risk_label", "risk_score", "confidence", "explanation"]].copy()
     display_df.rename(columns={
         "timestamp": "Time",
         "src_ip": "Source",
@@ -164,7 +164,8 @@ def render():
         "predicted_attack": "Attack Type",
         "risk_label": "Severity",
         "risk_score": "Risk Score",
-        "confidence": "Confidence"
+        "confidence": "Confidence",
+        "explanation": "Explanation"
     }, inplace=True)
 
     def color_severity(val):
@@ -172,4 +173,4 @@ def render():
         return f"color: {colors.get(val, '#E0E0E0')}; font-weight: 600"
 
     styled = display_df.style.map(color_severity, subset=["Severity"])
-    st.dataframe(styled, use_container_width=True, height=400)
+    st.dataframe(styled, width="stretch", height=400)

@@ -22,7 +22,7 @@ LOGIN_TARGETS = [
 USERNAMES = ["admin", "root", "user", "test", "administrator", "guest", "support"]
 PASSWORDS = ["password", "123456", "admin", "root", "letmein", "qwerty", "welcome"]
 
-def run(attempts=10):
+def run(attempts=200):
     print("\n=======================================================")
     print("   AI-SOC Demo: FTP/SSH Brute Force Attack")
     print("=======================================================\n")
@@ -63,6 +63,7 @@ def run(attempts=10):
                 risk_label="High",
                 predicted_attack="Brute_Force",
                 confidence=random.uniform(0.75, 0.90),
+                explanation="Simulated attack.",
                 features=generate_features(is_attack=True)
             )
         except Exception:

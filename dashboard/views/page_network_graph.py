@@ -120,7 +120,7 @@ def render():
         font=dict(color="#E0E0E0"),
         hovermode="closest",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # Graph statistics
     st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
