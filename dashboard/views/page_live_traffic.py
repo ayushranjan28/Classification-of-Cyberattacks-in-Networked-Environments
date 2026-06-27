@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from live_capture.database import get_recent_flows
+from live_capture.database import get_recent_flows, get_database_stats
 
 def render():
     # Auto-refresh every 2000 milliseconds (2 seconds)
@@ -23,10 +23,11 @@ def render():
         st.info("Waiting for network traffic... Make sure `python live_capture/sniffer.py` is running.")
     else:
         df = pd.DataFrame(flows)
+        stats = get_database_stats()
         
         # Calculate live stats
-        total_flows = len(df)
-        anomalies = len(df[df["predicted_attack"] != "BENIGN"])
+        total_flows = stats["total"]
+        anomalies = stats["threats"]
         highest_risk = df["risk_score"].max()
         
         col1, col2, col3 = st.columns(3)

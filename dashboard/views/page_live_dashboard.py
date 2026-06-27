@@ -82,7 +82,7 @@ def render():
     # Calculate live stats
     total_packets = stats["total"]
     n_attacks = stats["threats"]
-    n_critical = len(df[df["risk_label"] == "Critical"])
+    n_critical = stats["critical"]
     avg_risk = df["risk_score"].mean()
     
     # ─── Top Metrics Row ───────────────────────────────────────────────
