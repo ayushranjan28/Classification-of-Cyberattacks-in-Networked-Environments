@@ -116,7 +116,7 @@ def render():
     with col2:
         st.markdown("### Active Attack Distribution")
         
-        attack_df = df[df["predicted_attack"] != "BENIGN"]
+        attack_df = df[df["predicted_attack"] != "Normal"]
         if not attack_df.empty:
             label_counts = attack_df["predicted_attack"].value_counts()
             colors = ["#EF4444", "#F59E0B", "#F97316", "#8B5CF6", "#EC4899", "#3B82F6"]

@@ -38,7 +38,7 @@ class InferenceWriter(OutputWriter):
             result = self.engine.score_flow(data, src_ip, src_port, dst_ip, dst_port, protocol)
             
             # Active Defense & Logging
-            if result["predicted_attack"] != "BENIGN":
+            if result["predicted_attack"] != "Normal":
                 log.warning(f"🚨 ATTACK DETECTED [{result['risk_label']}]: {src_ip}:{src_port} -> {dst_ip}:{dst_port} | Type: {result['predicted_attack']} (Conf: {result['confidence']:.2f})")
                 
                 # If risk is Critical, block it automatically using Windows Firewall

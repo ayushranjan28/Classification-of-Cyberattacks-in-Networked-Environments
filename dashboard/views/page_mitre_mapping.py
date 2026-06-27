@@ -23,7 +23,7 @@ def render():
     default_attack = None
     if flows:
         df = pd.DataFrame(flows)
-        attacks = df[df["predicted_attack"] != "BENIGN"]["predicted_attack"]
+        attacks = df[df["predicted_attack"] != "Normal"]["predicted_attack"]
         if not attacks.empty:
             default_attack = attacks.value_counts().index[0]
             st.warning(f"🔴 Auto-tracking Active Threat: **{default_attack}**")

@@ -84,7 +84,7 @@ def render():
     latest_attack = None
     if flows:
         df = pd.DataFrame(flows)
-        attacks = df[df["predicted_attack"] != "BENIGN"]
+        attacks = df[df["predicted_attack"] != "Normal"]
         if not attacks.empty:
             latest_attack = attacks.iloc[0].to_dict()
 
@@ -116,7 +116,7 @@ def render():
         top_features = []
     else:
         st.success("✅ No recent anomalies detected in the live traffic stream.")
-        pred_label = "BENIGN"
+        pred_label = "Normal"
         confidence = 1.0
         explanation_text = "Traffic is normal."
         top_features = []

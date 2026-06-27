@@ -46,7 +46,7 @@ def render():
         
         # Style the dataframe based on risk
         def highlight_risk(row):
-            if row["predicted_attack"] != "BENIGN":
+            if row["predicted_attack"] != "Normal":
                 return ['background-color: rgba(239, 68, 68, 0.2)'] * len(row)
             elif row["risk_label"] == "Medium":
                 return ['background-color: rgba(245, 158, 11, 0.2)'] * len(row)
@@ -65,7 +65,7 @@ def render():
         
         with colA:
             if anomalies > 0:
-                attack_counts = df[df["predicted_attack"] != "BENIGN"]["predicted_attack"].value_counts().reset_index()
+                attack_counts = df[df["predicted_attack"] != "Normal"]["predicted_attack"].value_counts().reset_index()
                 attack_counts.columns = ["Attack Type", "Count"]
                 fig1 = px.pie(attack_counts, names="Attack Type", values="Count", hole=0.4, title="Detected Attack Types")
                 fig1.update_traces(marker=dict(colors=["#EF4444", "#F97316", "#F59E0B"]))

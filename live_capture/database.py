@@ -95,7 +95,7 @@ def get_database_stats():
     cursor.execute("SELECT COUNT(*) FROM live_flows")
     total = cursor.fetchone()[0]
     
-    cursor.execute("SELECT COUNT(*) FROM live_flows WHERE predicted_attack != 'BENIGN'")
+    cursor.execute("SELECT COUNT(*) FROM live_flows WHERE predicted_attack != 'Normal'")
     threats = cursor.fetchone()[0]
     
     cursor.execute("SELECT COUNT(*) FROM live_flows WHERE risk_label = 'Critical'")
